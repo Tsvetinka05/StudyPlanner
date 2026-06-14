@@ -32,3 +32,12 @@ class StudyPlanner:
 
     def get_pending_tasks(self):
         return self.get_total_tasks() - self.get_completed_tasks()
+
+    def get_total_estimated_time(self):
+        total_time = 0
+
+        for course in self.courses:
+            for task in course.tasks:
+                total_time += task.estimated_minutes
+
+        return total_time
