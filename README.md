@@ -2,12 +2,22 @@
 
 Desktop приложение за организиране на учебни задачи, курсове и изпити.
 
-## Основни функционалности
+## Current Features
 
-- Управление на задачи
-- Категории/курсове
-- Приоритети
-- Deadline-и
+- Create and manage courses
+- Create study tasks
+- Set task priority
+- Set deadlines
+- Mark tasks as completed
+- Calculate total number of tasks
+- Calculate completed and pending tasks
+- Calculate total estimated study time
+
+## Planned Features
+
+- SQLite database
+- Unit tests with pytest
+- Kivy graphical interface
 - Pomodoro timer
-- Статистики
-- Записване на данни
+- Study break recommendations
+- Productivity statistics
