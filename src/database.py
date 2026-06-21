@@ -43,3 +43,9 @@ class Database:
         ))
 
         self.connection.commit()
+
+    
+    def get_tasks(self):
+        self.cursor.execute("SELECT * FROM tasks")
+
+        return self.cursor.fetchall()

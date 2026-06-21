@@ -42,3 +42,11 @@ print("Completed tasks:", planner.get_completed_tasks())
 print("Pending tasks:", planner.get_pending_tasks())
 print("Total study time:", planner.get_total_estimated_time(), "minutes")
 print("Tasks saved to database.")
+
+print()
+print("Tasks in database:")
+
+tasks = database.get_tasks()
+
+for task in tasks:
+    print(task)
