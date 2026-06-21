@@ -16,3 +16,19 @@ def test_add_task():
     course.add_task(task)
 
     assert course.get_tasks_count() == 1
+
+def test_remove_task():
+    course = Course("Python")
+
+    task = Task(
+        "Homework",
+        "Python",
+        60,
+        1,
+        "2026-06-20"
+    )
+
+    course.add_task(task)
+    course.remove_task(task)
+
+    assert course.get_tasks_count() == 0
