@@ -49,3 +49,7 @@ class Database:
         self.cursor.execute("SELECT * FROM tasks")
 
         return self.cursor.fetchall()
+    
+    def clear_tasks(self): #for now
+        self.cursor.execute("DELETE FROM tasks")
+        self.connection.commit()
