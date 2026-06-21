@@ -1,8 +1,11 @@
 from src.task import Task
 from src.course import Course
 from src.planner import StudyPlanner
+from src.database import Database
 
 planner = StudyPlanner()
+database = Database()
+database.create_tables()
 
 python_course = Course("Python")
 
@@ -34,3 +37,4 @@ print("Total tasks:", planner.get_total_tasks())
 print("Completed tasks:", planner.get_completed_tasks())
 print("Pending tasks:", planner.get_pending_tasks())
 print("Total study time:", planner.get_total_estimated_time(), "minutes")
+
