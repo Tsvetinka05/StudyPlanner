@@ -50,4 +50,8 @@ print("Tasks in database:")
 tasks = database.get_tasks()
 
 for task in tasks:
-    print(task)
+    print(f"Title: {task[1]}")
+    print(f"Subject: {task[2]}")
+    print(f"Estimated time: {task[3]} minutes")
+    print(f"Deadline: {task[5]}")
+    print()
