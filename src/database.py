@@ -20,3 +20,26 @@ class Database:
         """)
 
         self.connection.commit()
+
+    def add_task(self, task):
+        self.cursor.execute("""
+            INSERT INTO tasks(
+                title,
+                subject,
+                estimated_minutes,
+                priority,
+                deadline,
+                completed
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            task.title,
+            task.subject,
+            task.estimated_minutes,
+            task.priority,
+            task.deadline,
+            int(task.is_completed)
+        ))
+
+        self.connection.commit()

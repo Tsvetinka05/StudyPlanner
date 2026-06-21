@@ -4,8 +4,6 @@ from src.planner import StudyPlanner
 from src.database import Database
 
 planner = StudyPlanner()
-database = Database()
-database.create_tables()
 
 python_course = Course("Python")
 
@@ -25,6 +23,12 @@ task2 = Task(
     "2026-06-25"
 )
 
+database = Database()
+database.create_tables()
+
+database.add_task(task1)
+database.add_task(task2)
+
 task1.mark_completed()
 
 python_course.add_task(task1)
@@ -37,4 +41,4 @@ print("Total tasks:", planner.get_total_tasks())
 print("Completed tasks:", planner.get_completed_tasks())
 print("Pending tasks:", planner.get_pending_tasks())
 print("Total study time:", planner.get_total_estimated_time(), "minutes")
-
+print("Tasks saved to database.")
