@@ -25,6 +25,7 @@ task2 = Task(
 
 database = Database()
 database.create_tables()
+database.clear_tasks() # for now
 
 database.add_task(task1)
 database.add_task(task2)
