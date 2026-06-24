@@ -19,6 +19,18 @@ def start_gui():
         tasks.append(task_text)
         task_listbox.insert(tk.END, task_text)
         task_entry.delete(0, tk.END)
+
+    def delete_task():
+        selected_task = task_listbox.curselection()
+
+        if not selected_task:
+            messagebox.showwarning("Warning", "Please select a task.")
+            return
+
+        index = selected_task[0]
+
+        task_listbox.delete(index)
+        tasks.pop(index)
     
     def complete_task():
         selected_task = task_listbox.curselection()
@@ -63,6 +75,14 @@ def start_gui():
     command=complete_task
     )
     complete_task_button.pack(pady=10)
+
+    delete_task_button = tk.Button(
+    window,
+    text="Delete Task",
+    command=delete_task
+        )
+
+    delete_task_button.pack(pady=10)
 
     statistics_button = tk.Button(
         window,
