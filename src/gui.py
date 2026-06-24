@@ -14,6 +14,13 @@ def start_gui():
 
     title.pack(pady=20)
 
+    task_entry = tk.Entry(
+    window,
+    width=30
+    )
+
+    task_entry.pack(pady=10)
+
     add_task_button = tk.Button(
         window,
         text="Add Task"
