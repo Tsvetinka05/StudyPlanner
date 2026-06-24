@@ -48,10 +48,20 @@ def start_gui():
         task_listbox.insert(index, tasks[index])
 
     def show_statistics():
+        completed = 0
+
+        for task in tasks:
+            if "completed" in task:
+                completed += 1
+
+        pending = len(tasks) - completed
+
         messagebox.showinfo(
             "Statistics",
-            f"Total tasks: {len(tasks)}"
-        )
+            f"Total tasks: {len(tasks)}\n"
+            f"Completed: {completed}\n"
+            f"Pending: {pending}"
+    )
 
     title = tk.Label(
         window,
