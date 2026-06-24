@@ -1,5 +1,5 @@
 import tkinter as tk
-
+from tkinter import messagebox
 
 def start_gui():
     window = tk.Tk()
@@ -22,10 +22,18 @@ def start_gui():
     add_task_button.pack(pady=10)
 
     statistics_button = tk.Button(
-        window,
-        text="Show Statistics"
+    window,
+    text="Show Statistics",
+    command=show_statistics
     )
 
     statistics_button.pack(pady=10)
 
     window.mainloop()
+
+
+def show_statistics():
+    messagebox.showinfo(
+        "Statistics",
+        "Statistics will be shown here."
+    )
