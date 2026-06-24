@@ -19,6 +19,21 @@ def start_gui():
         tasks.append(task_text)
         task_listbox.insert(tk.END, task_text)
         task_entry.delete(0, tk.END)
+    
+    def complete_task():
+        selected_task = task_listbox.curselection()
+
+        if not selected_task:
+            messagebox.showwarning("Warning", "Please select a task.")
+            return
+
+        index = selected_task[0]
+        task_text = tasks[index]
+
+        tasks[index] = task_text + " - completed"
+
+        task_listbox.delete(index)
+        task_listbox.insert(index, tasks[index])
 
     def show_statistics():
         messagebox.showinfo(
@@ -42,6 +57,12 @@ def start_gui():
         command=add_task
     )
     add_task_button.pack(pady=10)
+    complete_task_button = tk.Button(
+    window,
+    text="Complete Task",
+    command=complete_task
+    )
+    complete_task_button.pack(pady=10)
 
     statistics_button = tk.Button(
         window,
