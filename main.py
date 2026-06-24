@@ -2,6 +2,9 @@ from src.task import Task
 from src.course import Course
 from src.planner import StudyPlanner
 from src.database import Database
+from src.gui import start_gui
+
+start_gui()
 
 planner = StudyPlanner()
 
