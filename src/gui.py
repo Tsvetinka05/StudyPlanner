@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from src.task import Task
 from src.database import Database
-
+from datetime import datetime
 
 def start_gui():
     window = tk.Tk()
@@ -28,10 +28,6 @@ def start_gui():
         estimated_time = int(time_entry.get())
         deadline = deadline_entry.get()
 
-        if task_text == "":
-            messagebox.showwarning("Warning", "Please enter a task.")
-            return
-
         task = Task(
             task_text,
             subject,
@@ -39,6 +35,60 @@ def start_gui():
             1,
             deadline
         )
+
+        if task_text == "" or task_text == "Task name":
+            messagebox.showwarning(
+            "Warning",
+            "Please enter a task name."
+            )
+            return
+    
+        if subject == "" or subject == "Subject":
+            messagebox.showwarning(
+                "Warning",
+                "Please enter a subject."
+            )
+            return
+    
+        if estimated_time == "" or estimated_time == "Estimated minutes":
+            messagebox.showwarning(
+                "Warning",
+                "Please enter estimated minutes."
+            )
+            return
+
+        if not estimated_time.isdigit():
+            messagebox.showwarning(
+                "Warning",
+                "Estimated minutes must be a number."
+            )
+            return
+
+        estimated_time = int(estimated_time)
+
+        if estimated_time <= 0:
+            messagebox.showwarning(
+                "Warning",
+                "Estimated minutes must be greater than 0."
+            )
+            return
+
+        
+        if deadline == "" or deadline == "Deadline":
+            messagebox.showwarning(
+                "Warning",
+                "Please enter a deadline."
+            )
+            return
+
+        try:
+            datetime.strptime(deadline, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showwarning(
+                "Warning",
+                "Deadline must be in format YYYY-MM-DD."
+            )
+            return
 
         database.add_task(task)
 
