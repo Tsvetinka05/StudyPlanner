@@ -1,4 +1,5 @@
 import tkinter as tk
+import calendar
 from tkinter import messagebox
 from datetime import datetime
 
@@ -113,6 +114,11 @@ def start_gui():
             return
 
         index = selected_task[0]
+        task_text = tasks[index]
+
+        task_title = task_text.split("|")[0].strip()
+
+        database.delete_task_by_title(task_title)
 
         task_listbox.delete(index)
         tasks.pop(index)
@@ -236,6 +242,110 @@ def start_gui():
 
         messagebox.showinfo("Study Plan", plan_text)
 
+    def show_calendar_plan():
+        calendar_window = tk.Toplevel(window)
+        calendar_window.title("Study Plan Calendar")
+        calendar_window.geometry("900x600")
+
+        title = tk.Label(
+            calendar_window,
+            text="Study Plan Calendar",
+            font=("Arial", 18)
+        )
+        title.pack(pady=10)
+
+        calendar_frame = tk.Frame(calendar_window)
+        calendar_frame.pack()
+
+        today = datetime.today()
+        year = today.year
+        month = today.month
+
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+        for col in range(7):
+            label = tk.Label(
+                calendar_frame,
+                text=days[col],
+                width=16,
+                height=2,
+                borderwidth=1,
+                relief="solid"
+            )
+            label.grid(row=0, column=col)
+
+        month_calendar = calendar.monthcalendar(year, month)
+
+        for row in range(len(month_calendar)):
+            for col in range(7):
+                day = month_calendar[row][col]
+
+                text = ""
+                if day != 0:
+                    text = str(day)
+
+                day_label = tk.Label(
+                    calendar_frame,
+                    text=text,
+                    width=16,
+                    height=6,
+                    borderwidth=1,
+                    relief="solid",
+                    anchor="nw",
+                    justify="left"
+                )
+
+                day_label.grid(row=row + 1, column=col)
+
+        for task in tasks:
+            parts = task.split("|")
+
+            if len(parts) < 4:
+                continue
+
+            task_name = parts[0].strip()
+            subject = parts[1].strip()
+            minutes_text = parts[2].replace("min", "").strip()
+            deadline_text = parts[3].replace("- completed", "").strip()
+
+            try:
+                total_minutes = int(minutes_text)
+                deadline = datetime.strptime(deadline_text, "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            days_left = (deadline - today).days + 1
+
+            if days_left <= 0:
+                days_left = 1
+
+            minutes_per_day = total_minutes // days_left
+
+            if total_minutes % days_left != 0:
+                minutes_per_day += 1
+
+            breaks = minutes_per_day // 50
+
+            for i in range(days_left):
+                current_day = today.day + i
+
+                if current_day > calendar.monthrange(year, month)[1]:
+                    break
+
+                for row in range(len(month_calendar)):
+                    for col in range(7):
+                        if month_calendar[row][col] == current_day:
+                            old_text = calendar_frame.grid_slaves(row=row + 1, column=col)[0]["text"]
+
+                            new_text = (
+                                f"{old_text}\n\n"
+                                f"{subject}\n"
+                                f"{minutes_per_day} min study\n"
+                                f"{breaks} break"
+                            )
+
+                            calendar_frame.grid_slaves(row=row + 1, column=col)[0]["text"] = new_text
+
     add_task_button = tk.Button(
         window,
         text="Add Task",
@@ -277,6 +387,13 @@ def start_gui():
         command=generate_study_plan
     )
     study_plan_button.pack(pady=8)
+
+    calendar_button = tk.Button(
+        window,
+        text="Open Calendar Plan",
+        command=show_calendar_plan
+    )
+    calendar_button.pack(pady=8)
 
     task_listbox = tk.Listbox(window, width=70)
     task_listbox.pack(pady=20)

@@ -44,6 +44,13 @@ class Database:
 
         self.connection.commit()
 
+    def delete_task_by_title(self, title):
+        self.cursor.execute(
+            "DELETE FROM tasks WHERE title = ?",
+            (title,)
+        )
+
+        self.connection.commit()
     
     def get_tasks(self):
         self.cursor.execute("SELECT * FROM tasks")
@@ -53,3 +60,5 @@ class Database:
     def clear_tasks(self): #for now
         self.cursor.execute("DELETE FROM tasks")
         self.connection.commit()
+
+    
