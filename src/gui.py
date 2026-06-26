@@ -188,6 +188,53 @@ def start_gui():
             f"Recommended breaks: {breaks}\n\n"
             "Recommendation: Take a 10 minute break after every 50 minutes of studying."
         )
+    
+    def generate_study_plan():
+        today = datetime.today()
+
+        if len(tasks) == 0:
+            messagebox.showinfo("Study Plan", "No tasks available.")
+            return
+
+        plan_text = ""
+
+        for task in tasks:
+            parts = task.split("|")
+
+            if len(parts) < 4:
+                continue
+
+            title = parts[0].strip()
+            subject = parts[1].strip()
+            minutes_text = parts[2].replace("min", "").strip()
+            deadline_text = parts[3].replace("- completed", "").strip()
+
+            try:
+                total_minutes = int(minutes_text)
+                deadline = datetime.strptime(deadline_text, "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            days_left = (deadline - today).days + 1
+
+            if days_left <= 0:
+                days_left = 1
+
+            minutes_per_day = total_minutes // days_left
+
+            if total_minutes % days_left != 0:
+                minutes_per_day += 1
+
+            breaks_per_day = minutes_per_day // 50
+
+            plan_text += f"Task: {title}\n"
+            plan_text += f"Subject: {subject}\n"
+            plan_text += f"Days left: {days_left}\n"
+            plan_text += f"Study per day: {minutes_per_day} min\n"
+            plan_text += f"Breaks per day: {breaks_per_day} x 10 min\n"
+            plan_text += "----------------------\n"
+
+        messagebox.showinfo("Study Plan", plan_text)
 
     add_task_button = tk.Button(
         window,
@@ -223,6 +270,13 @@ def start_gui():
         command=show_break_recommendation
     )
     breaks_button.pack(pady=8)
+
+    study_plan_button = tk.Button(
+        window,
+        text="Generate Study Plan",
+        command=generate_study_plan
+    )
+    study_plan_button.pack(pady=8)
 
     task_listbox = tk.Listbox(window, width=70)
     task_listbox.pack(pady=20)
