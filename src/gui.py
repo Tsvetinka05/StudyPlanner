@@ -109,6 +109,15 @@ def start_gui():
     statistics_button.pack(pady=10)
 
     task_listbox = tk.Listbox(window, width=50)
+    
+
+    saved_tasks = database.get_tasks()
+
+    for task in saved_tasks:
+        task_title = task[1]
+        tasks.append(task_title)
+        task_listbox.insert(tk.END, task_title)
+    
     task_listbox.pack(pady=20)
 
     window.mainloop()
