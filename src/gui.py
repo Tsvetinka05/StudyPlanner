@@ -10,7 +10,7 @@ from src.database import Database
 def start_gui():
     window = tk.Tk()
     window.title("Study Planner")
-    window.geometry("600x600")
+    window.geometry("600x650")
 
     tasks = []
 
@@ -24,6 +24,27 @@ def start_gui():
     def add_placeholder(entry, placeholder):
         if entry.get() == "":
             entry.insert(0, placeholder)
+
+    def update_dashboard():
+        completed = 0
+        total_time = 0
+
+        for task in tasks:
+            if "completed" in task:
+                completed += 1
+                continue
+
+            parts = task.split("|")
+            if len(parts) >= 3:
+                time_text = parts[2].replace("min", "").strip()
+                if time_text.isdigit():
+                    total_time += int(time_text)
+
+                pending = len(tasks) - completed
+
+        stats_label.config(
+            text=f"Tasks: {len(tasks)} | Completed: {completed} | Pending: {pending} | Study time: {total_time} min"
+        )
 
     def add_task():
         task_text = task_entry.get()
@@ -63,14 +84,7 @@ def start_gui():
             messagebox.showerror("Task Error", "Deadline must be in format YYYY-MM-DD.")
             return
 
-        task = Task(
-            task_text,
-            subject,
-            estimated_time,
-            1,
-            deadline
-        )
-
+        task = Task(task_text, subject, estimated_time, 1, deadline)
         database.add_task(task)
 
         task_display = f"{task_text} | {subject} | {estimated_time} min | {deadline}"
@@ -88,27 +102,24 @@ def start_gui():
         add_placeholder(time_entry, "Estimated minutes")
         add_placeholder(deadline_entry, "Deadline")
 
+        update_dashboard()
+
         messagebox.showinfo("Success", "Task added successfully!")
 
     def complete_task():
         selected_task = task_listbox.curselection()
 
         if not selected_task:
-            messagebox.showwarning(
-                "Warning",
-                "Please select a task."
-            )
+            messagebox.showwarning("Warning", "Please select a task.")
             return
 
         index = selected_task[0]
-
         task_text = tasks[index]
 
         if "completed" in task_text:
             return
 
         task_title = task_text.split("|")[0].strip()
-
         database.complete_task_by_title(task_title)
 
         tasks[index] = task_text + " - completed"
@@ -116,10 +127,9 @@ def start_gui():
         task_listbox.delete(index)
         task_listbox.insert(index, tasks[index])
 
-        messagebox.showinfo(
-            "Success",
-            "Task completed successfully!"
-        )
+        update_dashboard()
+
+        messagebox.showinfo("Success", "Task completed successfully!")
 
     def delete_task():
         selected_task = task_listbox.curselection()
@@ -132,11 +142,12 @@ def start_gui():
         task_text = tasks[index]
 
         task_title = task_text.split("|")[0].strip()
-
         database.delete_task_by_title(task_title)
 
         task_listbox.delete(index)
         tasks.pop(index)
+
+        update_dashboard()
 
     def show_statistics():
         completed = 0
@@ -154,42 +165,13 @@ def start_gui():
             f"Pending: {pending}"
         )
 
-    title = tk.Label(
-        window,
-        text="Study Planner",
-        font=("Arial", 20)
-    )
-    title.pack(pady=20)
-
-    task_entry = tk.Entry(window, width=40)
-    task_entry.pack(pady=5)
-    task_entry.insert(0, "Task name")
-    task_entry.bind("<FocusIn>", lambda event: clear_placeholder(task_entry, "Task name"))
-    task_entry.bind("<FocusOut>", lambda event: add_placeholder(task_entry, "Task name"))
-
-    subject_entry = tk.Entry(window, width=40)
-    subject_entry.pack(pady=5)
-    subject_entry.insert(0, "Subject")
-    subject_entry.bind("<FocusIn>", lambda event: clear_placeholder(subject_entry, "Subject"))
-    subject_entry.bind("<FocusOut>", lambda event: add_placeholder(subject_entry, "Subject"))
-
-    time_entry = tk.Entry(window, width=40)
-    time_entry.pack(pady=5)
-    time_entry.insert(0, "Estimated minutes")
-    time_entry.bind("<FocusIn>", lambda event: clear_placeholder(time_entry, "Estimated minutes"))
-    time_entry.bind("<FocusOut>", lambda event: add_placeholder(time_entry, "Estimated minutes"))
-
-    deadline_entry = tk.Entry(window, width=40)
-    deadline_entry.pack(pady=5)
-    deadline_entry.insert(0, "Deadline")
-    deadline_entry.bind("<FocusIn>", lambda event: clear_placeholder(deadline_entry, "Deadline"))
-    deadline_entry.bind("<FocusOut>", lambda event: add_placeholder(deadline_entry, "Deadline"))
-
-
     def show_break_recommendation():
         total_minutes = 0
 
         for task in tasks:
+            if "completed" in task:
+                continue
+
             parts = task.split("|")
 
             if len(parts) >= 3:
@@ -209,7 +191,7 @@ def start_gui():
             f"Recommended breaks: {breaks}\n\n"
             "Recommendation: Take a 10 minute break after every 50 minutes of studying."
         )
-    
+
     def generate_study_plan():
         today = datetime.today()
 
@@ -222,6 +204,7 @@ def start_gui():
         for task in tasks:
             if "completed" in task:
                 continue
+
             parts = task.split("|")
 
             if len(parts) < 4:
@@ -256,6 +239,9 @@ def start_gui():
             plan_text += f"Study per day: {minutes_per_day} min\n"
             plan_text += f"Breaks per day: {breaks_per_day} x 10 min\n"
             plan_text += "----------------------\n"
+
+        if plan_text == "":
+            plan_text = "No active tasks available."
 
         messagebox.showinfo("Study Plan", plan_text)
 
@@ -374,57 +360,67 @@ def start_gui():
 
                         cell["text"] = f"{old_text}\n\n{tasks_for_day}"
 
-    add_task_button = tk.Button(
+    title = tk.Label(
         window,
-        text="Add Task",
-        command=add_task
+        text="Study Planner",
+        font=("Arial", 20)
     )
-    add_task_button.pack(pady=8)
+    title.pack(pady=15)
 
-    complete_task_button = tk.Button(
+    stats_label = tk.Label(
         window,
-        text="Complete Task",
-        command=complete_task
+        text="Tasks: 0 | Completed: 0 | Pending: 0 | Study time: 0 min",
+        font=("Arial", 11)
     )
-    complete_task_button.pack(pady=8)
+    stats_label.pack(pady=5)
 
-    delete_task_button = tk.Button(
-        window,
-        text="Delete Task",
-        command=delete_task
-    )
-    delete_task_button.pack(pady=8)
+    task_entry = tk.Entry(window, width=40)
+    task_entry.pack(pady=5)
+    task_entry.insert(0, "Task name")
+    task_entry.bind("<FocusIn>", lambda event: clear_placeholder(task_entry, "Task name"))
+    task_entry.bind("<FocusOut>", lambda event: add_placeholder(task_entry, "Task name"))
 
-    statistics_button = tk.Button(
-        window,
-        text="Show Statistics",
-        command=show_statistics
-    )
-    statistics_button.pack(pady=8)
+    subject_entry = tk.Entry(window, width=40)
+    subject_entry.pack(pady=5)
+    subject_entry.insert(0, "Subject")
+    subject_entry.bind("<FocusIn>", lambda event: clear_placeholder(subject_entry, "Subject"))
+    subject_entry.bind("<FocusOut>", lambda event: add_placeholder(subject_entry, "Subject"))
 
-    breaks_button = tk.Button(
-        window,
-        text="Study Breaks",
-        command=show_break_recommendation
-    )
-    breaks_button.pack(pady=8)
+    time_entry = tk.Entry(window, width=40)
+    time_entry.pack(pady=5)
+    time_entry.insert(0, "Estimated minutes")
+    time_entry.bind("<FocusIn>", lambda event: clear_placeholder(time_entry, "Estimated minutes"))
+    time_entry.bind("<FocusOut>", lambda event: add_placeholder(time_entry, "Estimated minutes"))
 
-    study_plan_button = tk.Button(
-        window,
-        text="Generate Study Plan",
-        command=generate_study_plan
-    )
-    study_plan_button.pack(pady=8)
+    deadline_entry = tk.Entry(window, width=40)
+    deadline_entry.pack(pady=5)
+    deadline_entry.insert(0, "Deadline")
+    deadline_entry.bind("<FocusIn>", lambda event: clear_placeholder(deadline_entry, "Deadline"))
+    deadline_entry.bind("<FocusOut>", lambda event: add_placeholder(deadline_entry, "Deadline"))
 
-    calendar_button = tk.Button(
-        window,
-        text="Open Calendar Plan",
-        command=show_calendar_plan
-    )
-    calendar_button.pack(pady=8)
+    add_task_button = tk.Button(window, text="Add Task", command=add_task)
+    add_task_button.pack(pady=5)
+
+    complete_task_button = tk.Button(window, text="Complete Task", command=complete_task)
+    complete_task_button.pack(pady=5)
+
+    delete_task_button = tk.Button(window, text="Delete Task", command=delete_task)
+    delete_task_button.pack(pady=5)
+
+    statistics_button = tk.Button(window, text="Show Statistics", command=show_statistics)
+    statistics_button.pack(pady=5)
+
+    breaks_button = tk.Button(window, text="Study Breaks", command=show_break_recommendation)
+    breaks_button.pack(pady=5)
+
+    study_plan_button = tk.Button(window, text="Generate Study Plan", command=generate_study_plan)
+    study_plan_button.pack(pady=5)
+
+    calendar_button = tk.Button(window, text="Open Calendar Plan", command=show_calendar_plan)
+    calendar_button.pack(pady=5)
 
     task_listbox = tk.Listbox(window, width=70)
-    task_listbox.pack(pady=20)
+    task_listbox.pack(pady=15)
 
     saved_tasks = database.get_tasks()
 
@@ -433,7 +429,6 @@ def start_gui():
         task_subject = task[2]
         task_time = task[3]
         task_deadline = task[5]
-
         completed = task[6]
 
         task_display = (
@@ -448,5 +443,7 @@ def start_gui():
 
         tasks.append(task_display)
         task_listbox.insert(tk.END, task_display)
+
+    update_dashboard()
 
     window.mainloop()
