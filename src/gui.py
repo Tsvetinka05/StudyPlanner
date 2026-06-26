@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+from src.task import Task
+from src.database import Database
 
 
 def start_gui():
@@ -9,6 +11,9 @@ def start_gui():
 
     tasks = []
 
+    database = Database()
+    database.create_tables()
+
     def add_task():
         task_text = task_entry.get()
 
@@ -17,6 +22,8 @@ def start_gui():
             return
 
         tasks.append(task_text)
+        task = Task(task_text, "General", 30, 1, "No deadline")
+        database.add_task(task)
         task_listbox.insert(tk.END, task_text)
         task_entry.delete(0, tk.END)
 
