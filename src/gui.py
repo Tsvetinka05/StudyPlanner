@@ -14,6 +14,14 @@ def start_gui():
     database = Database()
     database.create_tables()
 
+    def clear_placeholder(entry, placeholder):
+        if entry.get() == placeholder:
+            entry.delete(0, tk.END)
+
+    def add_placeholder(entry, placeholder):
+        if entry.get() == "":
+            entry.insert(0, placeholder)
+
     def add_task():
         task_text = task_entry.get()
         subject = subject_entry.get()
@@ -94,19 +102,30 @@ def start_gui():
     )
     title.pack(pady=20)
 
+    
     task_entry = tk.Entry(window, width=30)
     task_entry.pack(pady=10)
+    task_entry.insert(0, "Task name")
+    task_entry.bind("<FocusIn>", lambda event: clear_placeholder(task_entry, "Task name"))
+    task_entry.bind("<FocusOut>", lambda event: add_placeholder(task_entry, "Task name"))
+
     subject_entry = tk.Entry(window, width=30)
     subject_entry.pack(pady=5)
     subject_entry.insert(0, "Subject")
+    subject_entry.bind("<FocusIn>", lambda event: clear_placeholder(subject_entry, "Subject"))
+    subject_entry.bind("<FocusOut>", lambda event: add_placeholder(subject_entry, "Subject"))
 
     time_entry = tk.Entry(window, width=30)
     time_entry.pack(pady=5)
     time_entry.insert(0, "Estimated minutes")
+    time_entry.bind("<FocusIn>", lambda event: clear_placeholder(time_entry, "Estimated minutes"))
+    time_entry.bind("<FocusOut>", lambda event: add_placeholder(time_entry, "Estimated minutes"))
 
     deadline_entry = tk.Entry(window, width=30)
     deadline_entry.pack(pady=5)
     deadline_entry.insert(0, "Deadline")
+    deadline_entry.bind("<FocusIn>", lambda event: clear_placeholder(deadline_entry, "Deadline"))
+    deadline_entry.bind("<FocusOut>", lambda event: add_placeholder(deadline_entry, "Deadline"))
 
     add_task_button = tk.Button(
         window,
