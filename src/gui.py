@@ -18,6 +18,7 @@ def start_gui():
         task_text = task_entry.get()
         subject = subject_entry.get()
         estimated_time = int(time_entry.get())
+        deadline = deadline_entry.get()
 
         if task_text == "":
             messagebox.showwarning("Warning", "Please enter a task.")
@@ -28,12 +29,12 @@ def start_gui():
             subject,
             estimated_time,
             1,
-            "No deadline"
-    )
+            deadline
+        )
 
         database.add_task(task)
 
-        task_display = f"{task_text} | {subject} | {estimated_time} min"
+        task_display = f"{task_text} | {subject} | {estimated_time} min | {deadline}"
 
         tasks.append(task_display)
         task_listbox.insert(tk.END, task_display)
@@ -99,6 +100,10 @@ def start_gui():
     time_entry = tk.Entry(window, width=30)
     time_entry.pack(pady=5)
     time_entry.insert(0, "Estimated minutes")
+
+    deadline_entry = tk.Entry(window, width=30)
+    deadline_entry.pack(pady=5)
+    deadline_entry.insert(0, "Deadline")
 
     add_task_button = tk.Button(
         window,
