@@ -288,7 +288,7 @@ def start_gui():
                     calendar_frame,
                     text=text,
                     width=16,
-                    height=6,
+                    height=7,
                     borderwidth=1,
                     relief="solid",
                     anchor="nw",
@@ -297,13 +297,14 @@ def start_gui():
 
                 day_label.grid(row=row + 1, column=col)
 
+        daily_plan = {}
+
         for task in tasks:
             parts = task.split("|")
 
             if len(parts) < 4:
                 continue
 
-            task_name = parts[0].strip()
             subject = parts[1].strip()
             minutes_text = parts[2].replace("min", "").strip()
             deadline_text = parts[3].replace("- completed", "").strip()
@@ -332,19 +333,26 @@ def start_gui():
                 if current_day > calendar.monthrange(year, month)[1]:
                     break
 
-                for row in range(len(month_calendar)):
-                    for col in range(7):
-                        if month_calendar[row][col] == current_day:
-                            old_text = calendar_frame.grid_slaves(row=row + 1, column=col)[0]["text"]
+                if current_day not in daily_plan:
+                    daily_plan[current_day] = []
 
-                            new_text = (
-                                f"{old_text}\n\n"
-                                f"{subject}\n"
-                                f"{minutes_per_day} min study\n"
-                                f"{breaks} break"
-                            )
+                daily_plan[current_day].append(
+                    f"{subject}: {minutes_per_day} min, {breaks} break"
+                )
 
-                            calendar_frame.grid_slaves(row=row + 1, column=col)[0]["text"] = new_text
+        for day in daily_plan:
+            for row in range(len(month_calendar)):
+                for col in range(7):
+                    if month_calendar[row][col] == day:
+                        cell = calendar_frame.grid_slaves(
+                            row=row + 1,
+                            column=col
+                        )[0]
+
+                        old_text = cell["text"]
+                        tasks_for_day = "\n".join(daily_plan[day])
+
+                        cell["text"] = f"{old_text}\n\n{tasks_for_day}"
 
     add_task_button = tk.Button(
         window,
