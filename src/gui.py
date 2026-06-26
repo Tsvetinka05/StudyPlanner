@@ -94,17 +94,32 @@ def start_gui():
         selected_task = task_listbox.curselection()
 
         if not selected_task:
-            messagebox.showwarning("Warning", "Please select a task.")
+            messagebox.showwarning(
+                "Warning",
+                "Please select a task."
+            )
             return
 
         index = selected_task[0]
+
         task_text = tasks[index]
 
-        if "completed" not in task_text:
-            tasks[index] = task_text + " - completed"
+        if "completed" in task_text:
+            return
+
+        task_title = task_text.split("|")[0].strip()
+
+        database.complete_task_by_title(task_title)
+
+        tasks[index] = task_text + " - completed"
 
         task_listbox.delete(index)
         task_listbox.insert(index, tasks[index])
+
+        messagebox.showinfo(
+            "Success",
+            "Task completed successfully!"
+        )
 
     def delete_task():
         selected_task = task_listbox.curselection()
@@ -205,6 +220,8 @@ def start_gui():
         plan_text = ""
 
         for task in tasks:
+            if "completed" in task:
+                continue
             parts = task.split("|")
 
             if len(parts) < 4:
@@ -300,6 +317,9 @@ def start_gui():
         daily_plan = {}
 
         for task in tasks:
+            if "completed" in task:
+                continue
+
             parts = task.split("|")
 
             if len(parts) < 4:
@@ -414,7 +434,17 @@ def start_gui():
         task_time = task[3]
         task_deadline = task[5]
 
-        task_display = f"{task_title} | {task_subject} | {task_time} min | {task_deadline}"
+        completed = task[6]
+
+        task_display = (
+            f"{task_title} | "
+            f"{task_subject} | "
+            f"{task_time} min | "
+            f"{task_deadline}"
+        )
+
+        if completed == 1:
+            task_display += " - completed"
 
         tasks.append(task_display)
         task_listbox.insert(tk.END, task_display)

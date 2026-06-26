@@ -51,6 +51,14 @@ class Database:
         )
 
         self.connection.commit()
+
+    def complete_task_by_title(self, title):
+        self.cursor.execute(
+            "UPDATE tasks SET completed = 1 WHERE title = ?",
+            (title,)
+        )
+
+        self.connection.commit()
     
     def get_tasks(self):
         self.cursor.execute("SELECT * FROM tasks")
