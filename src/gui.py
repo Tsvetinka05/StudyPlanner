@@ -40,6 +40,9 @@ def start_gui():
         task_listbox.insert(tk.END, task_display)
 
         task_entry.delete(0, tk.END)
+        subject_entry.delete(0, tk.END)
+        time_entry.delete(0, tk.END)
+        deadline_entry.delete(0, tk.END)
 
     def delete_task():
         selected_task = task_listbox.curselection()
