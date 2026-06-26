@@ -164,6 +164,31 @@ def start_gui():
     deadline_entry.bind("<FocusIn>", lambda event: clear_placeholder(deadline_entry, "Deadline"))
     deadline_entry.bind("<FocusOut>", lambda event: add_placeholder(deadline_entry, "Deadline"))
 
+
+    def show_break_recommendation():
+        total_minutes = 0
+
+        for task in tasks:
+            parts = task.split("|")
+
+            if len(parts) >= 3:
+                time_part = parts[2].strip()
+                minutes = int(time_part.replace("min", "").strip())
+                total_minutes += minutes
+
+        if total_minutes == 0:
+            messagebox.showinfo("Study Breaks", "No study time available.")
+            return
+
+        breaks = total_minutes // 50
+
+        messagebox.showinfo(
+            "Study Breaks",
+            f"Total study time: {total_minutes} minutes\n"
+            f"Recommended breaks: {breaks}\n\n"
+            "Recommendation: Take a 10 minute break after every 50 minutes of studying."
+        )
+
     add_task_button = tk.Button(
         window,
         text="Add Task",
@@ -191,6 +216,13 @@ def start_gui():
         command=show_statistics
     )
     statistics_button.pack(pady=8)
+
+    breaks_button = tk.Button(
+        window,
+        text="Study Breaks",
+        command=show_break_recommendation
+    )
+    breaks_button.pack(pady=8)
 
     task_listbox = tk.Listbox(window, width=70)
     task_listbox.pack(pady=20)
