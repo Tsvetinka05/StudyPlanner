@@ -413,17 +413,12 @@ def start_gui():
         plan_text = ""
 
         for day in sorted(plan):
-            plan_text += f"{day}\n"
+            day_total = 0
 
             for item in plan[day]:
-                plan_text += (
-                    f"- {item['title']} | "
-                    f"{item['subject']} | "
-                    f"{item['minutes']} min | "
-                    f"{item['breaks']} breaks\n"
-                )
+                day_total += item["minutes"]
 
-            plan_text += "----------------------\n"
+            plan_text += f"{day} | Total: {day_total} min\n"
 
         messagebox.showinfo("Study Plan", plan_text)
 
