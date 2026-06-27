@@ -504,8 +504,14 @@ def start_gui():
                 day = month_calendar[row][col]
 
                 text = ""
+                background = "white"
+
                 if day != 0:
                     text = str(day)
+                    current_date = datetime(year, month, day)
+
+                    if current_date.date() == today.date():
+                        background = "#dbeafe"
 
                 day_label = tk.Label(
                     calendar_frame,
@@ -515,7 +521,8 @@ def start_gui():
                     borderwidth=1,
                     relief="solid",
                     anchor="nw",
-                    justify="left"
+                    justify="left",
+                    bg=background
                 )
 
                 day_label.grid(row=row + 1, column=col)
@@ -548,6 +555,7 @@ def start_gui():
                             )
 
                         cell["text"] = f"{old_text}\n\n{text_for_day}"
+                        cell.config(bg="#dcfce7")
                         cell.bind("<Button-1>", lambda event, day_key=day_key: show_day_details(day_key))
 
     title = tk.Label(
