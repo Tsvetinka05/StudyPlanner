@@ -2,6 +2,7 @@ import tkinter as tk
 import calendar
 from tkinter import messagebox
 from datetime import datetime, timedelta
+from tkinter import ttk
 
 from src.task import Task
 from src.database import Database
@@ -77,6 +78,14 @@ def start_gui():
         pending_card.config(text=f"Pending: {pending}")
         remaining_card.config(text=f"Remaining: {remaining_time} min")
         today_card.config(text=f"Today: {today_time} min")
+
+        if len(tasks) == 0:
+            progress = 0
+        else:
+            progress = int((completed / len(tasks)) * 100)
+
+        progress_bar["value"] = progress
+        progress_label.config(text=f"Progress: {progress}%")
 
     def get_today_study_time():
         today_key = datetime.today().strftime("%Y-%m-%d")
@@ -528,6 +537,16 @@ def start_gui():
 
     today_card = tk.Label(dashboard_frame, text="Today: 0 min", width=18, relief="ridge")
     today_card.grid(row=2, column=0, columnspan=2, padx=3, pady=3)
+
+    progress_label = tk.Label(window, text="Progress: 0%")
+    progress_label.pack(pady=3)
+
+    progress_bar = ttk.Progressbar(
+        window,
+        length=300,
+        mode="determinate"
+    )
+    progress_bar.pack(pady=5)
 
     focus_label = tk.Label(
         window,
