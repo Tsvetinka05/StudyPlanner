@@ -275,7 +275,6 @@ def start_gui():
         task_title = today_task["title"]
         minutes_done = today_task["minutes"]
 
-        today_key = datetime.today().strftime("%Y-%m-%d")
         completed_key = task_title + "|" + today_key
 
         if completed_key in completed_today:
@@ -444,7 +443,7 @@ def start_gui():
             plan_text += "----------------------\n"
 
         messagebox.showinfo("Study Plan", plan_text)
-        
+
     def show_calendar_plan():
         calendar_window = tk.Toplevel(window)
         calendar_window.title("Study Plan Calendar")
@@ -463,6 +462,27 @@ def start_gui():
         today = datetime.today()
         year = today.year
         month = today.month
+
+        plan = build_smart_plan()
+
+        def show_day_details(day_key):
+            if day_key not in plan:
+                messagebox.showinfo("Day Details", "No tasks planned for this day.")
+                return
+
+            text = f"Tasks for {day_key}\n\n"
+            total = 0
+            breaks = 0
+
+            for item in plan[day_key]:
+                text += f"- {item['title']} | {item['subject']} | {item['minutes']} min\n"
+                total += item["minutes"]
+                breaks += item["breaks"]
+
+            text += f"\nTotal: {total} min"
+            text += f"\nBreaks: {breaks}"
+
+            messagebox.showinfo("Day Details", text)
 
         days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -500,8 +520,6 @@ def start_gui():
 
                 day_label.grid(row=row + 1, column=col)
 
-        plan = build_smart_plan()
-
         for day_key in plan:
             day_date = datetime.strptime(day_key, "%Y-%m-%d")
 
@@ -530,6 +548,7 @@ def start_gui():
                             )
 
                         cell["text"] = f"{old_text}\n\n{text_for_day}"
+                        cell.bind("<Button-1>", lambda event, day_key=day_key: show_day_details(day_key))
 
     title = tk.Label(
         window,
