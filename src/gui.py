@@ -624,32 +624,32 @@ def start_gui():
     deadline_entry.bind("<FocusIn>", lambda event: clear_placeholder(deadline_entry, "Deadline"))
     deadline_entry.bind("<FocusOut>", lambda event: add_placeholder(deadline_entry, "Deadline"))
 
-    add_task_button = tk.Button(window, text="Add Task", command=add_task)
+    add_task_button = tk.Button(window, text="+ Add Task", command=add_task)
     add_task_button.pack(pady=5)
 
     complete_today_button = tk.Button(
         window,
-        text="Complete Today's Work",
+        text="✅ Complete Today's Work",
         command=complete_today_work
     )
     complete_today_button.pack(pady=5)
 
-    complete_task_button = tk.Button(window, text="Complete Whole Task", command=complete_task)
+    complete_task_button = tk.Button(window, text="🏁 Complete Whole Task", command=complete_task)
     complete_task_button.pack(pady=5)
 
     delete_task_button = tk.Button(window, text="Delete Task", command=delete_task)
     delete_task_button.pack(pady=5)
 
-    statistics_button = tk.Button(window, text="Show Statistics", command=show_statistics)
+    statistics_button = tk.Button(window, text="📊 Show Statistics", command=show_statistics)
     statistics_button.pack(pady=5)
 
-    breaks_button = tk.Button(window, text="Study Breaks", command=show_break_recommendation)
+    breaks_button = tk.Button(window, text="☕Study Breaks", command=show_break_recommendation)
     breaks_button.pack(pady=5)
 
-    study_plan_button = tk.Button(window, text="Generate Study Plan", command=generate_study_plan)
+    study_plan_button = tk.Button(window, text="🧠Generate Study Plan", command=generate_study_plan)
     study_plan_button.pack(pady=5)
 
-    calendar_button = tk.Button(window, text="Open Calendar Plan", command=show_calendar_plan)
+    calendar_button = tk.Button(window, text="📅Open Calendar Plan", command=show_calendar_plan)
     calendar_button.pack(pady=5)
 
     task_listbox = tk.Listbox(window, width=80)
