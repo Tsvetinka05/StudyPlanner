@@ -419,14 +419,32 @@ def start_gui():
 
         for day in sorted(plan):
             day_total = 0
+            day_breaks = 0
 
             for item in plan[day]:
                 day_total += item["minutes"]
+                day_breaks += item["breaks"]
 
-            plan_text += f"{day} | Total: {day_total} min\n"
+            plan_text += f"{day}\n"
+            plan_text += f"Total study time: {day_total} min\n"
+            plan_text += f"Recommended breaks: {day_breaks}\n\n"
+
+            for item in plan[day]:
+                plan_text += (
+                    f"- {item['title']} | "
+                    f"{item['subject']} | "
+                    f"{item['minutes']} min"
+                )
+
+                if item["breaks"] > 0:
+                    plan_text += f" | {item['breaks']} break"
+
+                plan_text += "\n"
+
+            plan_text += "----------------------\n"
 
         messagebox.showinfo("Study Plan", plan_text)
-
+        
     def show_calendar_plan():
         calendar_window = tk.Toplevel(window)
         calendar_window.title("Study Plan Calendar")
