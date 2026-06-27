@@ -13,6 +13,7 @@ def start_gui():
     window.geometry("700x750")
 
     tasks = []
+    completed_today = []
 
     database = Database()
     database.create_tables()
@@ -268,6 +269,18 @@ def start_gui():
 
         task_title = today_task["title"]
         minutes_done = today_task["minutes"]
+
+        today_key = datetime.today().strftime("%Y-%m-%d")
+        completed_key = task_title + "|" + today_key
+
+        if completed_key in completed_today:
+            messagebox.showwarning(
+                "Warning",
+                "You have already completed today's work for this task."
+            )
+            return
+
+        completed_today.append(completed_key)
 
         for i in range(len(tasks)):
             info = parse_task(tasks[i])
