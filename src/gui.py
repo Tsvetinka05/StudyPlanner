@@ -1,7 +1,7 @@
 import tkinter as tk
 import calendar
 from tkinter import messagebox
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src.task import Task
 from src.database import Database
@@ -10,7 +10,7 @@ from src.database import Database
 def start_gui():
     window = tk.Tk()
     window.title("Study Planner")
-    window.geometry("600x650")
+    window.geometry("700x750")
 
     tasks = []
 
@@ -25,26 +25,153 @@ def start_gui():
         if entry.get() == "":
             entry.insert(0, placeholder)
 
-    def update_dashboard():
-        completed = 0
-        total_time = 0
+    def parse_task(task_text):
+        parts = task_text.split("|")
+
+        if len(parts) < 4:
+            return None
+
+        title = parts[0].strip()
+        subject = parts[1].strip()
+        minutes_text = parts[2].replace("min", "").strip()
+        deadline = parts[3].replace("- completed", "").strip()
+
+        if not minutes_text.isdigit():
+            return None
+
+        return {
+            "title": title,
+            "subject": subject,
+            "minutes": int(minutes_text),
+            "deadline": deadline,
+            "completed": "completed" in task_text
+        }
+
+    def refresh_listbox():
+        task_listbox.delete(0, tk.END)
 
         for task in tasks:
-            if "completed" in task:
-                completed += 1
+            task_listbox.insert(tk.END, task)
+
+    def update_dashboard():
+        completed = 0
+        remaining_time = 0
+        today_time = get_today_study_time()
+
+        for task in tasks:
+            info = parse_task(task)
+
+            if info is None:
                 continue
 
-            parts = task.split("|")
-            if len(parts) >= 3:
-                time_text = parts[2].replace("min", "").strip()
-                if time_text.isdigit():
-                    total_time += int(time_text)
+            if info["completed"]:
+                completed += 1
+            else:
+                remaining_time += info["minutes"]
 
-                pending = len(tasks) - completed
+        pending = len(tasks) - completed
 
         stats_label.config(
-            text=f"Tasks: {len(tasks)} | Completed: {completed} | Pending: {pending} | Study time: {total_time} min"
+            text=(
+                f"Tasks: {len(tasks)} | "
+                f"Completed: {completed} | "
+                f"Pending: {pending} | "
+                f"Remaining: {remaining_time} min | "
+                f"Today: {today_time} min"
+            )
         )
+
+    def get_today_study_time():
+        today_key = datetime.today().strftime("%Y-%m-%d")
+        plan = build_smart_plan()
+
+        if today_key not in plan:
+            return 0
+
+        total = 0
+
+        for item in plan[today_key]:
+            total += item["minutes"]
+
+        return total
+
+    def update_today_focus():
+        today_key = datetime.today().strftime("%Y-%m-%d")
+        plan = build_smart_plan()
+
+        if today_key not in plan or len(plan[today_key]) == 0:
+            focus_label.config(text="Today's Focus: No active tasks")
+            return
+
+        best_item = plan[today_key][0]
+
+        focus_label.config(
+            text=(
+                f"Today's Focus: {best_item['title']} | "
+                f"{best_item['subject']} | "
+                f"{best_item['minutes']} min today"
+            )
+        )
+
+    def refresh_info():
+        update_dashboard()
+        update_today_focus()
+
+    def build_smart_plan():
+        today = datetime.today()
+        daily_plan = {}
+
+        for task in tasks:
+            info = parse_task(task)
+
+            if info is None or info["completed"]:
+                continue
+
+            try:
+                deadline = datetime.strptime(info["deadline"], "%Y-%m-%d")
+            except ValueError:
+                continue
+
+            days_left = (deadline - today).days + 1
+
+            if days_left <= 0:
+                days_left = 1
+
+            minutes_per_day = info["minutes"] // days_left
+
+            if info["minutes"] % days_left != 0:
+                minutes_per_day += 1
+
+            remaining = info["minutes"]
+
+            for i in range(days_left):
+                current_date = today + timedelta(days=i)
+                current_key = current_date.strftime("%Y-%m-%d")
+
+                minutes_for_day = minutes_per_day
+
+                if minutes_for_day > remaining:
+                    minutes_for_day = remaining
+
+                if minutes_for_day <= 0:
+                    break
+
+                if current_key not in daily_plan:
+                    daily_plan[current_key] = []
+
+                breaks = minutes_for_day // 50
+
+                daily_plan[current_key].append({
+                    "title": info["title"],
+                    "subject": info["subject"],
+                    "minutes": minutes_for_day,
+                    "breaks": breaks,
+                    "deadline": info["deadline"]
+                })
+
+                remaining -= minutes_for_day
+
+        return daily_plan
 
     def add_task():
         task_text = task_entry.get()
@@ -102,7 +229,7 @@ def start_gui():
         add_placeholder(time_entry, "Estimated minutes")
         add_placeholder(deadline_entry, "Deadline")
 
-        update_dashboard()
+        refresh_info()
 
         messagebox.showinfo("Success", "Task added successfully!")
 
@@ -124,12 +251,84 @@ def start_gui():
 
         tasks[index] = task_text + " - completed"
 
-        task_listbox.delete(index)
-        task_listbox.insert(index, tasks[index])
-
-        update_dashboard()
+        refresh_listbox()
+        refresh_info()
 
         messagebox.showinfo("Success", "Task completed successfully!")
+
+    def complete_today_work():
+        today_key = datetime.today().strftime("%Y-%m-%d")
+        plan = build_smart_plan()
+
+        if today_key not in plan or len(plan[today_key]) == 0:
+            messagebox.showinfo("Today", "No study work planned for today.")
+            return
+
+        today_task = plan[today_key][0]
+
+        task_title = today_task["title"]
+        minutes_done = today_task["minutes"]
+
+        for i in range(len(tasks)):
+            info = parse_task(tasks[i])
+
+            if info is None:
+                continue
+
+            if info["title"] == task_title and not info["completed"]:
+                new_minutes = info["minutes"] - minutes_done
+
+                database.delete_task_by_title(task_title)
+
+                if new_minutes <= 0:
+                    completed_task = Task(
+                        info["title"],
+                        info["subject"],
+                        0,
+                        1,
+                        info["deadline"]
+                    )
+
+                    database.add_task(completed_task)
+                    database.complete_task_by_title(info["title"])
+
+                    tasks[i] = (
+                        f"{info['title']} | "
+                        f"{info['subject']} | "
+                        f"0 min | "
+                        f"{info['deadline']} - completed"
+                    )
+
+                    messagebox.showinfo(
+                        "Success",
+                        f"Today's work is completed.\nThe whole task '{task_title}' is now completed."
+                    )
+                else:
+                    updated_task = Task(
+                        info["title"],
+                        info["subject"],
+                        new_minutes,
+                        1,
+                        info["deadline"]
+                    )
+
+                    database.add_task(updated_task)
+
+                    tasks[i] = (
+                        f"{info['title']} | "
+                        f"{info['subject']} | "
+                        f"{new_minutes} min | "
+                        f"{info['deadline']}"
+                    )
+
+                    messagebox.showinfo(
+                        "Success",
+                        f"Today's work is completed.\nRemaining time for '{task_title}': {new_minutes} min."
+                    )
+
+                refresh_listbox()
+                refresh_info()
+                return
 
     def delete_task():
         selected_task = task_listbox.curselection()
@@ -147,14 +346,22 @@ def start_gui():
         task_listbox.delete(index)
         tasks.pop(index)
 
-        update_dashboard()
+        refresh_info()
 
     def show_statistics():
         completed = 0
+        remaining_time = 0
 
         for task in tasks:
-            if "completed" in task:
+            info = parse_task(task)
+
+            if info is None:
+                continue
+
+            if info["completed"]:
                 completed += 1
+            else:
+                remaining_time += info["minutes"]
 
         pending = len(tasks) - completed
 
@@ -162,86 +369,48 @@ def start_gui():
             "Statistics",
             f"Total tasks: {len(tasks)}\n"
             f"Completed: {completed}\n"
-            f"Pending: {pending}"
+            f"Pending: {pending}\n"
+            f"Remaining study time: {remaining_time} min\n"
+            f"Today's study time: {get_today_study_time()} min"
         )
 
     def show_break_recommendation():
-        total_minutes = 0
+        today_minutes = get_today_study_time()
 
-        for task in tasks:
-            if "completed" in task:
-                continue
-
-            parts = task.split("|")
-
-            if len(parts) >= 3:
-                time_part = parts[2].strip()
-                minutes = int(time_part.replace("min", "").strip())
-                total_minutes += minutes
-
-        if total_minutes == 0:
-            messagebox.showinfo("Study Breaks", "No study time available.")
+        if today_minutes == 0:
+            messagebox.showinfo("Study Breaks", "No study time available for today.")
             return
 
-        breaks = total_minutes // 50
+        breaks = today_minutes // 50
 
         messagebox.showinfo(
             "Study Breaks",
-            f"Total study time: {total_minutes} minutes\n"
+            f"Today's study time: {today_minutes} minutes\n"
             f"Recommended breaks: {breaks}\n\n"
             "Recommendation: Take a 10 minute break after every 50 minutes of studying."
         )
 
     def generate_study_plan():
-        today = datetime.today()
+        plan = build_smart_plan()
 
-        if len(tasks) == 0:
-            messagebox.showinfo("Study Plan", "No tasks available.")
+        if len(plan) == 0:
+            messagebox.showinfo("Study Plan", "No active tasks available.")
             return
 
         plan_text = ""
 
-        for task in tasks:
-            if "completed" in task:
-                continue
+        for day in sorted(plan):
+            plan_text += f"{day}\n"
 
-            parts = task.split("|")
+            for item in plan[day]:
+                plan_text += (
+                    f"- {item['title']} | "
+                    f"{item['subject']} | "
+                    f"{item['minutes']} min | "
+                    f"{item['breaks']} breaks\n"
+                )
 
-            if len(parts) < 4:
-                continue
-
-            title = parts[0].strip()
-            subject = parts[1].strip()
-            minutes_text = parts[2].replace("min", "").strip()
-            deadline_text = parts[3].replace("- completed", "").strip()
-
-            try:
-                total_minutes = int(minutes_text)
-                deadline = datetime.strptime(deadline_text, "%Y-%m-%d")
-            except ValueError:
-                continue
-
-            days_left = (deadline - today).days + 1
-
-            if days_left <= 0:
-                days_left = 1
-
-            minutes_per_day = total_minutes // days_left
-
-            if total_minutes % days_left != 0:
-                minutes_per_day += 1
-
-            breaks_per_day = minutes_per_day // 50
-
-            plan_text += f"Task: {title}\n"
-            plan_text += f"Subject: {subject}\n"
-            plan_text += f"Days left: {days_left}\n"
-            plan_text += f"Study per day: {minutes_per_day} min\n"
-            plan_text += f"Breaks per day: {breaks_per_day} x 10 min\n"
             plan_text += "----------------------\n"
-
-        if plan_text == "":
-            plan_text = "No active tasks available."
 
         messagebox.showinfo("Study Plan", plan_text)
 
@@ -300,53 +469,16 @@ def start_gui():
 
                 day_label.grid(row=row + 1, column=col)
 
-        daily_plan = {}
+        plan = build_smart_plan()
 
-        for task in tasks:
-            if "completed" in task:
+        for day_key in plan:
+            day_date = datetime.strptime(day_key, "%Y-%m-%d")
+
+            if day_date.month != month or day_date.year != year:
                 continue
 
-            parts = task.split("|")
+            day = day_date.day
 
-            if len(parts) < 4:
-                continue
-
-            subject = parts[1].strip()
-            minutes_text = parts[2].replace("min", "").strip()
-            deadline_text = parts[3].replace("- completed", "").strip()
-
-            try:
-                total_minutes = int(minutes_text)
-                deadline = datetime.strptime(deadline_text, "%Y-%m-%d")
-            except ValueError:
-                continue
-
-            days_left = (deadline - today).days + 1
-
-            if days_left <= 0:
-                days_left = 1
-
-            minutes_per_day = total_minutes // days_left
-
-            if total_minutes % days_left != 0:
-                minutes_per_day += 1
-
-            breaks = minutes_per_day // 50
-
-            for i in range(days_left):
-                current_day = today.day + i
-
-                if current_day > calendar.monthrange(year, month)[1]:
-                    break
-
-                if current_day not in daily_plan:
-                    daily_plan[current_day] = []
-
-                daily_plan[current_day].append(
-                    f"{subject}: {minutes_per_day} min, {breaks} break"
-                )
-
-        for day in daily_plan:
             for row in range(len(month_calendar)):
                 for col in range(7):
                     if month_calendar[row][col] == day:
@@ -356,9 +488,17 @@ def start_gui():
                         )[0]
 
                         old_text = cell["text"]
-                        tasks_for_day = "\n".join(daily_plan[day])
 
-                        cell["text"] = f"{old_text}\n\n{tasks_for_day}"
+                        text_for_day = ""
+
+                        for item in plan[day_key]:
+                            text_for_day += (
+                                f"{item['subject']}: "
+                                f"{item['minutes']} min, "
+                                f"{item['breaks']} break\n"
+                            )
+
+                        cell["text"] = f"{old_text}\n\n{text_for_day}"
 
     title = tk.Label(
         window,
@@ -369,10 +509,17 @@ def start_gui():
 
     stats_label = tk.Label(
         window,
-        text="Tasks: 0 | Completed: 0 | Pending: 0 | Study time: 0 min",
+        text="Tasks: 0 | Completed: 0 | Pending: 0 | Remaining: 0 min | Today: 0 min",
         font=("Arial", 11)
     )
     stats_label.pack(pady=5)
+
+    focus_label = tk.Label(
+        window,
+        text="Today's Focus: No active tasks",
+        font=("Arial", 11)
+    )
+    focus_label.pack(pady=5)
 
     task_entry = tk.Entry(window, width=40)
     task_entry.pack(pady=5)
@@ -401,7 +548,14 @@ def start_gui():
     add_task_button = tk.Button(window, text="Add Task", command=add_task)
     add_task_button.pack(pady=5)
 
-    complete_task_button = tk.Button(window, text="Complete Task", command=complete_task)
+    complete_today_button = tk.Button(
+        window,
+        text="Complete Today's Work",
+        command=complete_today_work
+    )
+    complete_today_button.pack(pady=5)
+
+    complete_task_button = tk.Button(window, text="Complete Whole Task", command=complete_task)
     complete_task_button.pack(pady=5)
 
     delete_task_button = tk.Button(window, text="Delete Task", command=delete_task)
@@ -419,7 +573,7 @@ def start_gui():
     calendar_button = tk.Button(window, text="Open Calendar Plan", command=show_calendar_plan)
     calendar_button.pack(pady=5)
 
-    task_listbox = tk.Listbox(window, width=70)
+    task_listbox = tk.Listbox(window, width=80)
     task_listbox.pack(pady=15)
 
     saved_tasks = database.get_tasks()
@@ -444,6 +598,6 @@ def start_gui():
         tasks.append(task_display)
         task_listbox.insert(tk.END, task_display)
 
-    update_dashboard()
+    refresh_info()
 
     window.mainloop()
