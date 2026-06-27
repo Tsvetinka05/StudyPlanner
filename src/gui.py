@@ -55,6 +55,7 @@ def start_gui():
         for task in tasks:
             task_listbox.insert(tk.END, task)
 
+    
     def update_dashboard():
         completed = 0
         remaining_time = 0
@@ -73,11 +74,11 @@ def start_gui():
 
         pending = len(tasks) - completed
 
-        tasks_card.config(text=f"Tasks: {len(tasks)}")
-        completed_card.config(text=f"Completed: {completed}")
-        pending_card.config(text=f"Pending: {pending}")
-        remaining_card.config(text=f"Remaining: {remaining_time} min")
-        today_card.config(text=f"Today: {today_time} min")
+        tasks_card.config(text=f"📚 Tasks: {len(tasks)}")
+        completed_card.config(text=f"✅ Completed: {completed}")
+        pending_card.config(text=f"⏳ Pending: {pending}")
+        remaining_card.config(text=f"📖 Remaining: {remaining_time} min")
+        today_card.config(text=f"🎯 Today: {today_time} min")
 
         if len(tasks) == 0:
             progress = 0
@@ -568,20 +569,20 @@ def start_gui():
     dashboard_frame = tk.Frame(window)
     dashboard_frame.pack(pady=5)
 
-    tasks_card = tk.Label(dashboard_frame, text="Tasks: 0", width=18, relief="ridge")
-    tasks_card.grid(row=0, column=0, padx=3, pady=3)
+    tasks_card = tk.Label(dashboard_frame, text="📚 Tasks: 0", width=20, relief="ridge", bg="#f8fafc")
+    tasks_card.grid(row=0, column=0, padx=4, pady=4)
 
-    completed_card = tk.Label(dashboard_frame, text="Completed: 0", width=18, relief="ridge")
-    completed_card.grid(row=0, column=1, padx=3, pady=3)
+    completed_card = tk.Label(dashboard_frame, text="✅ Completed: 0", width=20, relief="ridge", bg="#dcfce7")
+    completed_card.grid(row=0, column=1, padx=4, pady=4)
 
-    pending_card = tk.Label(dashboard_frame, text="Pending: 0", width=18, relief="ridge")
-    pending_card.grid(row=1, column=0, padx=3, pady=3)
+    pending_card = tk.Label(dashboard_frame, text="⏳ Pending: 0", width=20, relief="ridge", bg="#fef9c3")
+    pending_card.grid(row=1, column=0, padx=4, pady=4)
 
-    remaining_card = tk.Label(dashboard_frame, text="Remaining: 0 min", width=18, relief="ridge")
-    remaining_card.grid(row=1, column=1, padx=3, pady=3)
+    remaining_card = tk.Label(dashboard_frame, text="📖 Remaining: 0 min", width=20, relief="ridge", bg="#e0f2fe")
+    remaining_card.grid(row=1, column=1, padx=4, pady=4)
 
-    today_card = tk.Label(dashboard_frame, text="Today: 0 min", width=18, relief="ridge")
-    today_card.grid(row=2, column=0, columnspan=2, padx=3, pady=3)
+    today_card = tk.Label(dashboard_frame, text="🎯 Today: 0 min", width=20, relief="ridge", bg="#ede9fe")
+    today_card.grid(row=2, column=0, columnspan=2, padx=4, pady=4)
 
     progress_label = tk.Label(window, text="Progress: 0%")
     progress_label.pack(pady=3)
