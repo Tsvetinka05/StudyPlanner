@@ -72,15 +72,11 @@ def start_gui():
 
         pending = len(tasks) - completed
 
-        stats_label.config(
-            text=(
-                f"Tasks: {len(tasks)} | "
-                f"Completed: {completed} | "
-                f"Pending: {pending} | "
-                f"Remaining: {remaining_time} min | "
-                f"Today: {today_time} min"
-            )
-        )
+        tasks_card.config(text=f"Tasks: {len(tasks)}")
+        completed_card.config(text=f"Completed: {completed}")
+        pending_card.config(text=f"Pending: {pending}")
+        remaining_card.config(text=f"Remaining: {remaining_time} min")
+        today_card.config(text=f"Today: {today_time} min")
 
     def get_today_study_time():
         today_key = datetime.today().strftime("%Y-%m-%d")
@@ -515,12 +511,23 @@ def start_gui():
     )
     title.pack(pady=15)
 
-    stats_label = tk.Label(
-        window,
-        text="Tasks: 0 | Completed: 0 | Pending: 0 | Remaining: 0 min | Today: 0 min",
-        font=("Arial", 11)
-    )
-    stats_label.pack(pady=5)
+    dashboard_frame = tk.Frame(window)
+    dashboard_frame.pack(pady=5)
+
+    tasks_card = tk.Label(dashboard_frame, text="Tasks: 0", width=18, relief="ridge")
+    tasks_card.grid(row=0, column=0, padx=3, pady=3)
+
+    completed_card = tk.Label(dashboard_frame, text="Completed: 0", width=18, relief="ridge")
+    completed_card.grid(row=0, column=1, padx=3, pady=3)
+
+    pending_card = tk.Label(dashboard_frame, text="Pending: 0", width=18, relief="ridge")
+    pending_card.grid(row=1, column=0, padx=3, pady=3)
+
+    remaining_card = tk.Label(dashboard_frame, text="Remaining: 0 min", width=18, relief="ridge")
+    remaining_card.grid(row=1, column=1, padx=3, pady=3)
+
+    today_card = tk.Label(dashboard_frame, text="Today: 0 min", width=18, relief="ridge")
+    today_card.grid(row=2, column=0, columnspan=2, padx=3, pady=3)
 
     focus_label = tk.Label(
         window,
